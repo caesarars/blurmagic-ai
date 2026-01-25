@@ -1,0 +1,5 @@
+{
+  "name": "BlurMagic AI",
+  "description": "A professional-grade image blurring suite powered by Gemini AI. Effortlessly apply artistic blurs, protect privacy with smart face/text detection, and enhance your photos with a few clicks.",
+  "requestFramePermissions": []
+}
