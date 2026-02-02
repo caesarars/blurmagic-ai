@@ -52,7 +52,11 @@ async function resizeImageIfNeeded(base64Url: string, maxDimension: number = 102
 }
 
 export async function aiProcessImage(base64Url: string, prompt: string): Promise<string | null> {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const apiKey = process.env.API_KEY 
+  if (!apiKey) {
+    throw new Error('VITE_GEMINI_API_KEY is not configured. Please check your .env file.');
+  }
+  const ai = new GoogleGenAI({ apiKey });
   
   try {
     const { data: base64Data, mimeType } = await resizeImageIfNeeded(base64Url, 1024);
@@ -102,7 +106,11 @@ FORMAT: Return the modified image data as an inline image part. No text, no expl
 }
 
 export async function aiDetectAreas(base64Url: string, prompt: string): Promise<any[]> {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const apiKey = process.env.API_KEY 
+  if (!apiKey) {
+    throw new Error('VITE_GEMINI_API_KEY is not configured. Please check your .env file.');
+  }
+  const ai = new GoogleGenAI({ apiKey });
   
   try {
     const { data: base64Data, mimeType } = await resizeImageIfNeeded(base64Url, 1024);

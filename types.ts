@@ -46,3 +46,19 @@ export interface BlurSettings {
 export type AISmartAction = 'faces' | 'background' | 'text' | 'sensitive' | 'nuclear_censor';
 
 export type CompliancePreset = 'twitter_safe' | 'member_teaser' | 'clean';
+
+// Toast Types
+export type ToastType = 'success' | 'error' | 'warning' | 'info';
+
+export interface Toast {
+  id: string;
+  type: ToastType;
+  message: string;
+  duration?: number;
+}
+
+export interface ToastContextType {
+  toasts: Toast[];
+  addToast: (message: string, type?: ToastType, duration?: number) => void;
+  removeToast: (id: string) => void;
+}

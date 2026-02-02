@@ -1,11 +1,13 @@
 
 import React from 'react';
+import UserProfile from './UserProfile';
 
 interface HeaderProps {
   onOpenPrivacy: () => void;
+  onOpenAuth: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onOpenPrivacy }) => {
+const Header: React.FC<HeaderProps> = ({ onOpenPrivacy, onOpenAuth }) => {
   return (
     <header className="h-16 flex items-center justify-between px-6 glass sticky top-0 z-50">
       <div className="flex items-center gap-3">
@@ -19,20 +21,24 @@ const Header: React.FC<HeaderProps> = ({ onOpenPrivacy }) => {
         </h1>
       </div>
       
-      <div className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-400">
-        <button 
-          onClick={onOpenPrivacy}
-          className="hover:text-white transition-colors"
-        >
-          How it works
-        </button>
-        <button 
-          onClick={onOpenPrivacy}
-          className="hover:text-white transition-colors flex items-center gap-1.5"
-        >
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-          Privacy First
-        </button>
+      <div className="flex items-center gap-6">
+        <div className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-400">
+          <button 
+            onClick={onOpenPrivacy}
+            className="hover:text-white transition-colors"
+          >
+            How it works
+          </button>
+          <button 
+            onClick={onOpenPrivacy}
+            className="hover:text-white transition-colors flex items-center gap-1.5"
+          >
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            Privacy First
+          </button>
+        </div>
+        
+        <UserProfile onOpenAuth={onOpenAuth} />
       </div>
     </header>
   );
