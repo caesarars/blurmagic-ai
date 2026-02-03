@@ -21,33 +21,24 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  const handleSocialLogin = async (provider: 'google' | 'twitter') => {
-    setIsLoading(true);
-    console.log(`🔘 ${provider} login button clicked`);
-    
-    try {
-      let result;
-      if (provider === 'google') {
-        result = await signInWithGoogle();
-      } else {
-        result = await signInWithTwitter();
-      }
-      
-      console.log('📊 Login result:', result);
-      
-      if (result.error) {
-        console.error('❌ Login error:', result.error);
-        addToast(result.error, 'error');
-      } else if (result.user) {
-        console.log('✅ Login successful, closing modal');
-        addToast(`Successfully signed in with ${provider}!`, 'success');
-        onClose();
-      }
-    } catch (error: any) {
-      console.error('❌ Unexpected error:', error);
-      addToast(error.message || `Failed to sign in with ${provider}`, 'error');
-    } finally {
-      setIsLoading(false);
+	  const handleSocialLogin = async (provider: 'google' | 'twitter') => {
+	    setIsLoading(true);
+	    console.log(`🔘 ${provider} login button clicked`);
+	    
+	    try {
+	      if (provider === 'google') {
+	        await signInWithGoogle();
+	      } else {
+	        await signInWithTwitter();
+	      }
+	      console.log('✅ Login successful, closing modal');
+	      addToast(`Successfully signed in with ${provider}!`, 'success');
+	      onClose();
+	    } catch (error: any) {
+	      console.error('❌ Unexpected error:', error);
+	      addToast(error.message || `Failed to sign in with ${provider}`, 'error');
+	    } finally {
+	      setIsLoading(false);
     }
   };
 
