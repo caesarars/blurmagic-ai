@@ -64,7 +64,7 @@ Panduan lengkap step-by-step integrasi BlurMagic AI dengan Firebase project kamu
 ### 3.2 Setup Security Rules
 
 1. Click tab **"Rules"**
-2. Replace rules dengan ini:
+2. Replace rules dengan ini (basic, user bisa read/write doc sendiri):
 
 ```javascript
 rules_version = '2';
@@ -84,6 +84,9 @@ service cloud.firestore {
 ```
 
 3. Click **"Publish"**
+
+> Kalau kamu pakai model berbayar (manual billing + credits), rules di atas terlalu longgar (user bisa edit `plan/credits` sendiri).
+> Pakai rules yang lebih ketat dari file `firestore.rules` di repo ini: hanya boleh update profile fields, sedangkan `plan/credits` server-controlled via Admin API (Vercel `/api`).
 
 ---
 
@@ -208,6 +211,52 @@ vercel --prod
 ```
 
 Atau push ke GitHub (auto-deploy).
+
+---
+
+## 💳 Step 9: Manual Billing (No Payment Gateway)
+
+Karena kamu nggak mau pakai payment gateway, upgrade dilakukan **manual** (misal transfer bank) lalu kamu grant plan/credits lewat Admin API.
+
+### 9.1 Tambah Environment Variables di Vercel
+
+Vercel → Project → Settings → Environment Variables:
+
+```env
+# Firebase Admin (service account json)
+FIREBASE_SERVICE_ACCOUNT_JSON={"type":"service_account",...}
+
+# Admin API (keep secret)
+ADMIN_API_SECRET=your_long_random_secret
+```
+
+> Tips: kalau value JSON terlalu panjang, pakai `FIREBASE_SERVICE_ACCOUNT_JSON_BASE64` dan isi base64 dari JSON itu.
+
+### 9.2 Local dev untuk API routes
+
+- Jalankan `npm run dev:vercel` (bukan `npm run dev`) supaya route `/api/*` kebaca.
+
+### 9.3 Grant Plan/Credits (Admin)
+
+Set plan:
+- Endpoint: `POST /api/admin-set-plan`
+- Header: `x-admin-secret: <ADMIN_API_SECRET>`
+- Body JSON:
+```json
+{ "uid": "<firebase_uid>", "plan": "pro" }
+```
+
+Grant credits:
+- Endpoint: `POST /api/admin-grant-credits`
+- Header: `x-admin-secret: <ADMIN_API_SECRET>`
+- Body JSON:
+```json
+{ "uid": "<firebase_uid>", "amount": 3000, "reason": "manual_monthly" }
+```
+
+### 9.4 UX Upgrade
+
+Di UI, tombol **Upgrade to Pro** akan buka WhatsApp template berisi UID + email user.
 
 ---
 

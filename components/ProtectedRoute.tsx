@@ -10,6 +10,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, onRequireAuth
   const { user, usage, loading: authLoading } = useAuth();
   const [showLoading, setShowLoading] = useState(true);
 
+  const handleUpgrade = async () => {
+    if (!user) return;
+    const uid = user.uid;
+    const email = user.email || '';
+    const text = `Hi BlurMagic, I reached my limit and want to upgrade.\nUID: ${uid}\nEmail: ${email}\nPlan: PRO (monthly)\n`;
+    const wa = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(wa, '_blank', 'noopener,noreferrer');
+  };
+
   useEffect(() => {
     // Give a small delay to prevent flash of content
     const timer = setTimeout(() => {
@@ -79,6 +88,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, onRequireAuth
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
             <button
+              onClick={() => handleUpgrade().catch(console.error)}
               className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white px-6 py-3 rounded-full font-semibold transition-all shadow-lg"
             >
               Upgrade to Pro

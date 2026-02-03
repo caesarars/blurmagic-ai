@@ -9,8 +9,6 @@ import {
   resetPassword,
   logOut,
   getUserData,
-  incrementUserUsage,
-  checkUsageLimit,
   type UserData
 } from '../config/firebase';
 
@@ -54,6 +52,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Default: allow access for new users (5 images)
   const [usage, setUsage] = useState({ canUse: true, remaining: 5, limit: 5 });
 
+  const apiBase = (import.meta as any)?.env?.VITE_API_BASE_URL || '';
+
+  const fetchEntitlements = useCallback(
+    async (firebaseUser: User) => {
+      const token = await firebaseUser.getIdToken();
+      try {
+        const res = await fetch(`${apiBase}/api/entitlements`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const text = await res.text();
+        const payload = (() => {
+          try {
+            return text ? JSON.parse(text) : {};
+          } catch {
+            return { error: 'Non-JSON response from entitlements API', raw: text.slice(0, 200) };
+          }
+        })();
+        if (!res.ok) {
+          throw new Error(payload?.error || `Failed to fetch entitlements (${res.status})`);
+        }
+        return payload as { canUse: boolean; remaining: number; limit: number };
+      } catch (error) {
+        // Local dev may not be running Vercel `/api` (e.g. `npm run dev`).
+        console.warn('⚠️ Entitlements API unavailable, using default quota:', error);
+        return { canUse: true, remaining: 5, limit: 5 };
+      }
+    },
+    [apiBase]
+  );
+
   // Listen to auth state changes
   useEffect(() => {
     const unsubscribe = onAuthChange(async (firebaseUser) => {
@@ -69,7 +100,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             console.log('⚠️ User data not found (offline?), using default quota');
             setUsage({ canUse: true, remaining: 5, limit: 5 });
           } else {
-            await refreshUsage();
+            const entitlements = await fetchEntitlements(firebaseUser);
+            setUsage(entitlements);
           }
         } catch (error) {
           console.error('❌ Error loading user data:', error);
@@ -85,14 +117,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [fetchEntitlements]);
 
   const refreshUsage = useCallback(async () => {
     if (user) {
-      const usageData = await checkUsageLimit(user.uid);
-      setUsage(usageData);
+      try {
+        const entitlements = await fetchEntitlements(user);
+        setUsage(entitlements);
+      } catch (error) {
+        console.error('❌ Failed to refresh entitlements:', error);
+        // Fail-safe: don't hard block if billing API is temporarily down
+        setUsage({ canUse: true, remaining: 5, limit: 5 });
+      }
     }
-  }, [user]);
+  }, [user, fetchEntitlements]);
 
   const handleSignInWithGoogle = async () => {
     const { error } = await signInWithGoogle();
@@ -126,10 +164,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const trackUsage = useCallback(async (count: number = 1) => {
     if (user) {
-      await incrementUserUsage(user.uid, count);
-      await refreshUsage();
+      try {
+        const token = await user.getIdToken();
+        const res = await fetch(`${apiBase}/api/consume-credit`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ count, reason: 'process_image' }),
+        });
+        const text = await res.text();
+        const payload = (() => {
+          try {
+            return text ? JSON.parse(text) : {};
+          } catch {
+            return { error: 'Non-JSON response from consume-credit API', raw: text.slice(0, 200) };
+          }
+        })();
+        if (!res.ok) {
+          throw new Error(payload?.error || `Usage tracking failed (${res.status})`);
+        }
+        setUsage(payload as { canUse: boolean; remaining: number; limit: number });
+      } catch (error) {
+        // In dev without `/api`, don't hard-break image processing UX.
+        console.warn('⚠️ consume-credit failed (API unavailable?). Skipping usage decrement:', error);
+      }
     }
-  }, [user, refreshUsage]);
+  }, [user, apiBase]);
 
   const value: AuthContextType = {
     user,

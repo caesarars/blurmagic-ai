@@ -128,7 +128,14 @@ const SafetyModal: React.FC<SafetyModalProps> = ({ isOpen, onAccept }) => {
               />
               <span className="text-slate-300">
                 I have read and agree to the{' '}
-                <span className="text-blue-400">Terms of Service</span>{' '}
+                <a
+                  className="text-blue-400 hover:text-blue-300 underline underline-offset-2"
+                  href="/terms-and-conditions"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Terms of Service
+                </a>{' '}
                 and{' '}
                 <span className="text-blue-400">Content Guidelines</span>. 
                 I understand that violating these terms may result in account termination 

@@ -14,6 +14,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import LandingPage from './components/LandingPage';
 import AuthDebug from './components/AuthDebug';
+import TermsAndConditionsPage from './components/TermsAndConditionsPage';
 import { useToast } from './contexts/ToastContext';
 import { useAuth } from './contexts/AuthContext';
 import { useImageProcessor } from './hooks/useImageProcessor';
@@ -34,6 +35,10 @@ const DEFAULT_SETTINGS: BlurSettings = {
 };
 
 const App: React.FC = () => {
+  if (window.location.pathname === '/terms-and-conditions') {
+    return <TermsAndConditionsPage />;
+  }
+
   const [showLanding, setShowLanding] = useState(() => {
     return !localStorage.getItem('blurmagic-visited');
   });
@@ -72,6 +77,8 @@ const App: React.FC = () => {
     setShowLanding(false);
     window.scrollTo(0, 0);
   };
+
+  // Payment gateway removed: plan/credits are managed manually or via admin API.
 
   // Keyboard shortcuts
   useKeyboardShortcuts([

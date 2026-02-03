@@ -76,9 +76,19 @@ export interface UserData {
   displayName: string | null;
   photoURL: string | null;
   plan: 'free' | 'pro' | 'team';
-  dailyUsage: number;
-  totalUsage: number;
-  lastResetDate: Timestamp | null;
+  // Legacy daily quota fields (kept for backward compatibility)
+  dailyUsage?: number;
+  totalUsage?: number;
+  lastResetDate?: Timestamp | null;
+  // Credits / subscription fields (server-trusted via Admin API)
+  creditsBalance?: number;
+  monthlyCreditsAllowance?: number;
+  subscriptionStatus?: string | null;
+  stripeCustomerId?: string | null;
+  currentPeriodEnd?: Timestamp | null;
+  lastGrantedPeriodEnd?: Timestamp | null;
+  dailyCreditsUsed?: number;
+  lastDailyResetDate?: string;
   createdAt: Timestamp | null;
   updatedAt: Timestamp | null;
 }
@@ -247,17 +257,25 @@ const createUserDocument = async (user: User, additionalData: Partial<UserData> 
     if (!userSnap.exists()) {
       console.log('📝 User document does not exist, creating new...');
       
-      const userData: Omit<UserData, 'uid'> = {
-        email: user.email,
-        displayName: additionalData.displayName || user.displayName,
-        photoURL: user.photoURL,
-        plan: 'free',
-        dailyUsage: 0,
-        totalUsage: 0,
-        lastResetDate: serverTimestamp() as unknown as Timestamp,
-        createdAt: serverTimestamp() as unknown as Timestamp,
-        updatedAt: serverTimestamp() as unknown as Timestamp,
-      };
+	      const userData: Omit<UserData, 'uid'> = {
+	        email: user.email,
+	        displayName: additionalData.displayName || user.displayName,
+	        photoURL: user.photoURL,
+	        plan: 'free',
+	        dailyUsage: 0,
+	        totalUsage: 0,
+	        lastResetDate: serverTimestamp() as unknown as Timestamp,
+	        creditsBalance: 0,
+	        monthlyCreditsAllowance: 0,
+	        subscriptionStatus: null,
+	        stripeCustomerId: null,
+	        currentPeriodEnd: null,
+	        lastGrantedPeriodEnd: null,
+	        dailyCreditsUsed: 0,
+	        lastDailyResetDate: new Date().toISOString().slice(0, 10),
+	        createdAt: serverTimestamp() as unknown as Timestamp,
+	        updatedAt: serverTimestamp() as unknown as Timestamp,
+	      };
 
       await setDoc(userRef, userData);
       console.log('✅ User document created successfully');
@@ -265,7 +283,14 @@ const createUserDocument = async (user: User, additionalData: Partial<UserData> 
       console.log('ℹ️ User document already exists');
     }
   } catch (error) {
-    console.error('❌ Error creating user document:', error);
+    if ((error as any)?.code === 'permission-denied') {
+      console.error(
+        '❌ Firestore permission denied while creating user document. Check Firestore Rules for /users/{userId} access in your Firebase Console:',
+        error
+      );
+    } else {
+      console.error('❌ Error creating user document:', error);
+    }
     // Don't throw - we don't want to break the auth flow if Firestore fails
   }
 };
@@ -287,7 +312,15 @@ export const getUserData = async (uid: string, retries = 3): Promise<UserData | 
       return getUserData(uid, retries - 1);
     }
     
-    console.error('❌ Error getting user data:', error);
+    if (error.code === 'permission-denied') {
+      console.error(
+        `❌ Error getting user data: Firestore permission denied (projectId: ${firebaseConfig.projectId}). ` +
+          'Fix: Firestore Database → Rules → allow read/write for /users/{userId} when request.auth.uid == userId.',
+        error
+      );
+    } else {
+      console.error('❌ Error getting user data:', error);
+    }
     // Return null but don't break the app
     return null;
   }

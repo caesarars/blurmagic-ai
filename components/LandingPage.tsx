@@ -450,7 +450,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
               <ul className="space-y-2 text-sm text-slate-400">
                 <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">API Reference</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
+                <li><a href="/terms-and-conditions" className="hover:text-white transition-colors">Terms &amp; Conditions</a></li>
               </ul>
             </div>
             <div>

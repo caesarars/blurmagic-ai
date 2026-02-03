@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function onlyKeys(keys) {
+      return request.resource.data.keys().hasOnly(keys);
+    }
+
+    // Public-safe default: deny everything unless explicitly allowed below.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+
+      // Client can create their own doc with safe defaults only.
+      allow create: if isOwner(userId)
+        && request.resource.data.plan == 'free'
+        && request.resource.data.creditsBalance == 0
+        && request.resource.data.monthlyCreditsAllowance == 0
+        && request.resource.data.subscriptionStatus == null
+        && request.resource.data.stripeCustomerId == null
+        && request.resource.data.currentPeriodEnd == null
+        && request.resource.data.lastGrantedPeriodEnd == null
+        && request.resource.data.dailyCreditsUsed == 0
+        && request.resource.data.lastDailyResetDate is string
+        && onlyKeys([
+          'email',
+          'displayName',
+          'photoURL',
+          'plan',
+          'creditsBalance',
+          'monthlyCreditsAllowance',
+          'subscriptionStatus',
+          'stripeCustomerId',
+          'currentPeriodEnd',
+          'lastGrantedPeriodEnd',
+          'dailyCreditsUsed',
+          'lastDailyResetDate',
+          'createdAt',
+          'updatedAt'
+        ]);
+
+      // Client can update profile fields only (billing/credits are server-controlled).
+      allow update: if isOwner(userId)
+        && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+          'displayName',
+          'photoURL',
+          'updatedAt'
+        ]);
+    }
+
+    // Billing/ledger data is server-only (Admin SDK bypasses rules).
+    match /users/{userId}/credit_ledger/{docId} {
+      allow read, write: if false;
+    }
+
+  }
+}

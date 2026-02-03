@@ -8,6 +8,15 @@ interface UserProfileProps {
 const UserProfile: React.FC<UserProfileProps> = ({ onOpenAuth }) => {
   const { user, userData, usage, logout } = useAuth();
 
+  const handleUpgrade = async () => {
+    if (!user) return;
+    const uid = user.uid;
+    const email = user.email || '';
+    const text = `Hi BlurMagic, I want to upgrade.\nUID: ${uid}\nEmail: ${email}\nPlan: PRO (monthly)\n`;
+    const wa = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(wa, '_blank', 'noopener,noreferrer');
+  };
+
   if (!user) {
     return (
       <button
@@ -108,11 +117,14 @@ const UserProfile: React.FC<UserProfileProps> = ({ onOpenAuth }) => {
 
         <div className="p-2">
           {userData?.plan === 'free' && (
-            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/5 text-left transition-colors">
+            <button
+              onClick={() => handleUpgrade().catch(console.error)}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/5 text-left transition-colors"
+            >
               <span className="text-lg">⭐</span>
               <div>
                 <p className="font-medium text-sm">Upgrade to Pro</p>
-                <p className="text-xs text-slate-400">Get 100 images/day</p>
+                <p className="text-xs text-slate-400">Manual upgrade (WhatsApp)</p>
               </div>
             </button>
           )}
