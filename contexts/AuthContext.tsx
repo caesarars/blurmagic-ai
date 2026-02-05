@@ -58,7 +58,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     async (firebaseUser: User) => {
       const token = await firebaseUser.getIdToken();
       try {
-        const res = await fetch(`${apiBase}/api/entitlements`, {
+        const res = await fetch(`${apiBase}/entitlements`, {
           method: 'GET',
           headers: {
             Authorization: `Bearer ${token}`,
@@ -166,7 +166,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (user) {
       try {
         const token = await user.getIdToken();
-        const res = await fetch(`${apiBase}/api/consume-credit`, {
+        const res = await fetch(`${apiBase}/consume-credit`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
