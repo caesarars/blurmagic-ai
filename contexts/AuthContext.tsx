@@ -52,7 +52,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Default: allow access for new users (5 images)
   const [usage, setUsage] = useState({ canUse: true, remaining: 5, limit: 5 });
 
-  const apiBase = (import.meta as any)?.env?.VITE_API_BASE_URL || '';
+  const apiBase = (import.meta as any)?.env?.VITE_API_BASE_URL || 'https://blurmagic-backend-823039970129.asia-southeast1.run.app';
 
   const fetchEntitlements = useCallback(
     async (firebaseUser: User) => {

@@ -16,7 +16,7 @@ type DepositInfo = {
 const UserProfile: React.FC<UserProfileProps> = ({ onOpenAuth }) => {
   const { user, userData, usage, logout, refreshUsage } = useAuth();
 
-  const apiBase = (import.meta as any)?.env?.VITE_API_BASE_URL || '';
+  const apiBase = (import.meta as any)?.env?.VITE_API_BASE_URL || 'https://blurmagic-backend-823039970129.asia-southeast1.run.app';
   const apiBaseLabel = apiBase ? apiBase : '(missing VITE_API_BASE_URL)';
 
   const [deposit, setDeposit] = useState<DepositInfo | null>(null);
