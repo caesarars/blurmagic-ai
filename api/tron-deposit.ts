@@ -51,6 +51,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       credits: MONTHLY_CREDITS,
     });
   } catch (e: any) {
-    return json(res, 400, { error: e?.message || 'Bad request' });
+    // Surface env/import issues during Vercel function init.
+    return json(res, 500, { error: e?.message || 'Server error' });
   }
 }

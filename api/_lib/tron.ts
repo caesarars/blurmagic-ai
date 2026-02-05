@@ -1,8 +1,13 @@
-import TronWeb from 'tronweb';
+import TronWebPkg from 'tronweb';
+
+// tronweb packaging varies (CJS/ESM). Normalize.
+const TronWeb: any = (TronWebPkg as any)?.default || (TronWebPkg as any);
 
 export const USDT_TRC20_CONTRACT = process.env.USDT_TRC20_CONTRACT || 'TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj';
 
 export function tronClient() {
+  if (!TronWeb) throw new Error('TronWeb import failed');
+
   // No private key needed for read-only calls.
   const fullHost = process.env.TRON_FULL_HOST || 'https://api.trongrid.io';
   const headers: Record<string, string> = {};
@@ -16,10 +21,15 @@ export function tronClient() {
 }
 
 export async function createTronAccount() {
+  if (!TronWeb) throw new Error('TronWeb import failed');
+
   // tronweb exposes createAccount() as static in most versions.
   // This returns { privateKey, publicKey, address: { base58, hex } }
-  const acc = await (TronWeb as any).createAccount();
-  const address = acc?.address?.base58 as string;
+  const createFn = (TronWeb as any).createAccount || (TronWeb?.utils?.accounts?.generateAccount as any);
+  if (!createFn) throw new Error('TronWeb.createAccount not available');
+
+  const acc = await createFn();
+  const address = (acc?.address?.base58 || acc?.address) as string;
   const privateKey = acc?.privateKey as string;
   if (!address || !privateKey) throw new Error('Failed to create TRON account');
   return { address, privateKey };
