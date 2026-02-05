@@ -32,7 +32,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ onOpenAuth }) => {
     setLoadingPay(true);
     try {
       const token = await user.getIdToken();
-      const res = await fetch(`${apiBase}/api/tron-deposit`, {
+      const res = await fetch(`${apiBase}/payments/tron/deposit`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -56,7 +56,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ onOpenAuth }) => {
     setLoadingPay(true);
     try {
       const token = await user.getIdToken();
-      const res = await fetch(`${apiBase}/api/tron-claim`, {
+      const res = await fetch(`${apiBase}/payments/tron/claim`, {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
