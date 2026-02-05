@@ -38,6 +38,11 @@ export async function ensureUserDoc(db: FirebaseFirestore.Firestore, uid: string
       lastGrantedPeriodEnd: null,
       dailyCreditsUsed: 0,
       lastDailyResetDate: utcDateKey(),
+      // TRON (USDT TRC20) deposit address for self-custody payments
+      tronDepositAddress: null,
+      tronDepositPrivEnc: null,
+      tronDepositCreatedAt: null,
+      tronLastCheckedAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     },
@@ -122,6 +127,11 @@ export async function consumeCredits(
           lastGrantedPeriodEnd: null,
           dailyCreditsUsed: 0,
           lastDailyResetDate: utcDateKey(),
+          // TRON (USDT TRC20) deposit address for self-custody payments
+          tronDepositAddress: null,
+          tronDepositPrivEnc: null,
+          tronDepositCreatedAt: null,
+          tronLastCheckedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
         },

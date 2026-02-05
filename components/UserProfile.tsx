@@ -1,20 +1,88 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 
 interface UserProfileProps {
   onOpenAuth: () => void;
 }
 
-const UserProfile: React.FC<UserProfileProps> = ({ onOpenAuth }) => {
-  const { user, userData, usage, logout } = useAuth();
+type DepositInfo = {
+  address: string;
+  chain: string;
+  token: string;
+  priceUsdt: number;
+  credits: number;
+};
 
-  const handleUpgrade = async () => {
+const UserProfile: React.FC<UserProfileProps> = ({ onOpenAuth }) => {
+  const { user, userData, usage, logout, refreshUsage } = useAuth();
+
+  const apiBase = (import.meta as any)?.env?.VITE_API_BASE_URL || '';
+
+  const [deposit, setDeposit] = useState<DepositInfo | null>(null);
+  const [loadingPay, setLoadingPay] = useState(false);
+  const [txid, setTxid] = useState('');
+
+  const priceLabel = useMemo(() => {
+    const p = deposit?.priceUsdt ?? 10;
+    return `$${p} / month`;
+  }, [deposit?.priceUsdt]);
+
+  const handleGetDeposit = async () => {
     if (!user) return;
-    const uid = user.uid;
-    const email = user.email || '';
-    const text = `Hi BlurMagic, I want to upgrade.\nUID: ${uid}\nEmail: ${email}\nPlan: PRO (monthly)\n`;
-    const wa = `https://wa.me/?text=${encodeURIComponent(text)}`;
-    window.open(wa, '_blank', 'noopener,noreferrer');
+    setLoadingPay(true);
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch(`${apiBase}/api/tron-deposit`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const text = await res.text();
+      const payload = (() => {
+        try {
+          return text ? JSON.parse(text) : {};
+        } catch {
+          return { error: 'Non-JSON response', raw: text.slice(0, 200) };
+        }
+      })();
+      if (!res.ok) throw new Error(payload?.error || `Failed (${res.status})`);
+      setDeposit(payload as DepositInfo);
+    } finally {
+      setLoadingPay(false);
+    }
+  };
+
+  const handleCheckPayment = async () => {
+    if (!user) return;
+    setLoadingPay(true);
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch(`${apiBase}/api/tron-claim`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ txid: txid.trim() || undefined }),
+      });
+      const text = await res.text();
+      const payload = (() => {
+        try {
+          return text ? JSON.parse(text) : {};
+        } catch {
+          return { error: 'Non-JSON response', raw: text.slice(0, 200) };
+        }
+      })();
+      if (!res.ok) throw new Error(payload?.error || `Failed (${res.status})`);
+
+      if (payload?.paid) {
+        await refreshUsage();
+        alert('Payment confirmed ✅ Pro activated + 1000 credits');
+      } else {
+        alert('Belum kebaca payment-nya. Coba lagi 1-2 menit ya.');
+      }
+    } finally {
+      setLoadingPay(false);
+    }
   };
 
   if (!user) {
@@ -117,16 +185,57 @@ const UserProfile: React.FC<UserProfileProps> = ({ onOpenAuth }) => {
 
         <div className="p-2">
           {userData?.plan === 'free' && (
-            <button
-              onClick={() => handleUpgrade().catch(console.error)}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-white/5 text-left transition-colors"
-            >
-              <span className="text-lg">⭐</span>
-              <div>
-                <p className="font-medium text-sm">Upgrade to Pro</p>
-                <p className="text-xs text-slate-400">Manual upgrade (WhatsApp)</p>
+            <div className="px-3 py-2 rounded-xl border border-white/10 bg-slate-800/30">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-sm">Upgrade to Pro</p>
+                  <p className="text-xs text-slate-400">Pay with USDT (TRC20) — {priceLabel} • 1000 credits</p>
+                </div>
+                <button
+                  onClick={() => handleGetDeposit().catch((e) => alert(e?.message || 'Failed'))}
+                  disabled={loadingPay}
+                  className="ml-3 rounded-lg bg-purple-600 px-3 py-2 text-xs font-semibold hover:bg-purple-500 disabled:opacity-60"
+                >
+                  {loadingPay ? '...' : deposit ? 'Refresh' : 'Get address'}
+                </button>
               </div>
-            </button>
+
+              {deposit && (
+                <div className="mt-3">
+                  <div className="text-xs text-slate-300">Send exactly <b>{deposit.priceUsdt} USDT</b> to:</div>
+                  <div className="mt-1 flex items-center gap-2">
+                    <code className="flex-1 rounded-lg bg-slate-950/60 px-2 py-2 text-[11px] text-slate-200 break-all">
+                      {deposit.address}
+                    </code>
+                    <button
+                      onClick={() => navigator.clipboard.writeText(deposit.address)}
+                      className="rounded-lg bg-slate-700 px-2 py-2 text-[11px] font-semibold hover:bg-slate-600"
+                    >
+                      Copy
+                    </button>
+                  </div>
+
+                  <div className="mt-2 grid grid-cols-1 gap-2">
+                    <input
+                      value={txid}
+                      onChange={(e) => setTxid(e.target.value)}
+                      placeholder="Optional: paste TXID (trx hash)"
+                      className="w-full rounded-lg border border-white/10 bg-slate-950/60 px-2 py-2 text-[12px]"
+                    />
+                    <button
+                      onClick={() => handleCheckPayment().catch((e) => alert(e?.message || 'Failed'))}
+                      disabled={loadingPay}
+                      className="w-full rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold hover:bg-emerald-500 disabled:opacity-60"
+                    >
+                      {loadingPay ? 'Checking…' : "I've paid, check now"}
+                    </button>
+                    <div className="text-[11px] text-slate-400">
+                      Note: confirmation can take a bit. If it says not found, wait 1–2 minutes and retry.
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
 
           <button 
