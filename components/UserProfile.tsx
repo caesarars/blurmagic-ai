@@ -19,7 +19,13 @@ const UserProfile: React.FC<UserProfileProps> = ({ onOpenAuth }) => {
   const apiBase = (import.meta as any)?.env?.VITE_API_BASE_URL || 'https://blurmagic-backend-823039970129.asia-southeast1.run.app';
   const apiBaseLabel = apiBase ? apiBase : '(missing VITE_API_BASE_URL)';
 
-  const [deposit, setDeposit] = useState<DepositInfo | null>(null);
+  const [deposit, setDeposit] = useState<DepositInfo | null>({
+    address: '0x1637DE672da6Ffb03e10f942dD06a1dd7fbE74e1',
+    chain: 'BEP20',
+    token: 'USDT',
+    priceUsdt: 10,
+    credits: 1000,
+  });
   const [loadingPay, setLoadingPay] = useState(false);
   const [txid, setTxid] = useState('');
 
@@ -33,6 +39,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ onOpenAuth }) => {
     setLoadingPay(true);
     try {
       const token = await user.getIdToken();
+      // For BEP20 flow we use a fixed merchant address (no per-user deposit generation needed).
+      // Keep this handler in case we want to re-enable per-user deposits later.
       const res = await fetch(`${apiBase}/payments/tron/deposit`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
@@ -57,7 +65,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ onOpenAuth }) => {
     setLoadingPay(true);
     try {
       const token = await user.getIdToken();
-      const res = await fetch(`${apiBase}/payments/tron/claim`, {
+      const res = await fetch(`${apiBase}/payments/bep20/claim`, {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
@@ -204,7 +212,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ onOpenAuth }) => {
               {deposit && (
                 <div className="mt-3">
                   <div className="mb-2 text-[11px] text-slate-500">API: {apiBaseLabel}</div>
-                  <div className="text-xs text-slate-300">Send exactly <b>{deposit.priceUsdt} USDT</b> to:</div>
+                  <div className="text-xs text-slate-300">Send exactly <b>{deposit.priceUsdt} USDT</b> (BEP20 / BSC) to:</div>
                   <div className="mt-1 flex items-center gap-2">
                     <code className="flex-1 rounded-lg bg-slate-950/60 px-2 py-2 text-[11px] text-slate-200 break-all">
                       {deposit.address}
