@@ -74,25 +74,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       name: 'Free',
       price: '$0',
       period: 'forever',
-      features: ['5 images/day', 'Manual blur only', 'Basic watermark', 'Community support'],
-      cta: 'Get Started',
+      features: ['5 images/day', 'Manual blur + presets', 'Metadata wipe', 'Community support'],
+      cta: 'Try Free',
       popular: false
     },
     {
-      name: 'Pro',
-      price: '$9.99',
+      name: 'Starter',
+      price: '$10',
       period: '/month',
-      features: ['Unlimited images', 'All AI features', 'No watermark', 'HD export (4K)', 'Priority support', 'Batch processing'],
-      cta: 'Start Free Trial',
+      features: ['1000 credits / month', 'All AI features', 'Batch processing', 'No watermark', 'Priority support'],
+      cta: 'Get Starter',
       popular: true
-    },
-    {
-      name: 'Team',
-      price: '$29.99',
-      period: '/month',
-      features: ['Everything in Pro', '5 team members', 'API access', 'Custom presets', 'Dedicated support', 'White-label option'],
-      cta: 'Contact Sales',
-      popular: false
     }
   ];
 
@@ -157,24 +149,23 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 mb-8">
               <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              <span className="text-sm text-blue-400 font-medium">Now with Gemini AI Integration</span>
+              <span className="text-sm text-blue-400 font-medium">Built for creators • privacy-first</span>
             </div>
 
             {/* Headline */}
             <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
               <span className="bg-gradient-to-r from-white via-blue-200 to-cyan-200 bg-clip-text text-transparent">
-                Blur Photos in Seconds,
+                Blur in seconds,
               </span>
               <br />
               <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                Not Minutes
+protect privacy, keep the vibe
               </span>
             </h1>
 
             {/* Subheadline */}
             <p className="text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-              AI-powered image blurring for content creators, privacy advocates, and social media managers. 
-              One-click compliance, zero technical skills needed.
+              AI-powered blurring for creators and privacy-conscious teams. Auto-detect faces & sensitive text, tweak the look, export fast.
             </p>
 
             {/* CTA Buttons */}
@@ -183,7 +174,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
                 onClick={onEnterApp}
                 className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white px-8 py-4 rounded-full text-lg font-semibold transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 active:scale-95"
               >
-                Try Free — No Signup Required
+Start blurring now
               </button>
               <button 
                 onClick={() => scrollToSection('demo')}
@@ -224,13 +215,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onEnterApp }) => {
       {/* Social Proof / Logos */}
       <section className="py-12 border-y border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-sm text-slate-500 mb-8 uppercase tracking-widest">Trusted by creators from</p>
+          <p className="text-center text-sm text-slate-500 mb-8 uppercase tracking-widest">Made for creators & privacy-first teams</p>
           <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-50">
-            <span className="text-xl font-bold text-slate-400">OnlyFans</span>
-            <span className="text-xl font-bold text-slate-400">Patreon</span>
-            <span className="text-xl font-bold text-slate-400">Fanvue</span>
-            <span className="text-xl font-bold text-slate-400">Instagram</span>
-            <span className="text-xl font-bold text-slate-400">Twitter</span>
+            <span className="text-xl font-bold text-slate-400">Creators</span>
+            <span className="text-xl font-bold text-slate-400">Agencies</span>
+            <span className="text-xl font-bold text-slate-400">Social Teams</span>
+            <span className="text-xl font-bold text-slate-400">Privacy</span>
           </div>
         </div>
       </section>
