@@ -34,31 +34,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ onOpenAuth }) => {
     return `$${p} / month`;
   }, [deposit?.priceUsdt]);
 
-  const handleGetDeposit = async () => {
-    if (!user) return;
-    setLoadingPay(true);
-    try {
-      const token = await user.getIdToken();
-      // For BEP20 flow we use a fixed merchant address (no per-user deposit generation needed).
-      // Keep this handler in case we want to re-enable per-user deposits later.
-      const res = await fetch(`${apiBase}/payments/tron/deposit`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const text = await res.text();
-      const payload = (() => {
-        try {
-          return text ? JSON.parse(text) : {};
-        } catch {
-          return { error: 'Non-JSON response', raw: text.slice(0, 200) };
-        }
-      })();
-      if (!res.ok) throw new Error(payload?.error || `Failed (${res.status})`);
-      setDeposit(payload as DepositInfo);
-    } finally {
-      setLoadingPay(false);
-    }
-  };
+  // BEP20 flow uses a fixed merchant address (no per-user deposit generation needed).
 
   const handleCheckPayment = async () => {
     if (!user) return;
@@ -198,14 +174,14 @@ const UserProfile: React.FC<UserProfileProps> = ({ onOpenAuth }) => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-sm">Upgrade to Pro</p>
-                  <p className="text-xs text-slate-400">Pay with USDT (TRC20) — {priceLabel} • 1000 credits</p>
+                  <p className="text-xs text-slate-400">Pay with USDT (BEP20 / BSC) — {priceLabel} • 1000 credits</p>
                 </div>
                 <button
-                  onClick={() => handleGetDeposit().catch((e) => alert(e?.message || 'Failed'))}
-                  disabled={loadingPay}
+                  onClick={() => navigator.clipboard.writeText(deposit?.address || '')}
+                  disabled={!deposit?.address}
                   className="ml-3 rounded-lg bg-purple-600 px-3 py-2 text-xs font-semibold hover:bg-purple-500 disabled:opacity-60"
                 >
-                  {loadingPay ? '...' : deposit ? 'Refresh' : 'Get address'}
+                  Copy address
                 </button>
               </div>
 
@@ -229,7 +205,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ onOpenAuth }) => {
                     <input
                       value={txid}
                       onChange={(e) => setTxid(e.target.value)}
-                      placeholder="Optional: paste TXID (trx hash)"
+                      placeholder="Paste BSC transaction hash (0x...)"
                       className="w-full rounded-lg border border-white/10 bg-slate-950/60 px-2 py-2 text-[12px]"
                     />
                     <button
